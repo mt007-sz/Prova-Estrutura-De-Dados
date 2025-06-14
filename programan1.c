@@ -16,7 +16,7 @@ typedef struct {
     union {
         int inteiro;
         float racional;
-        char booleano[6]; // "true" ou "false"
+        char booleano[6]; 
         char string[TAM_STRING];
     } valor;
 } Leitura;
@@ -115,7 +115,12 @@ void salvar_leituras_por_sensor(SensorInfo *infos, int num_sensores, Leitura *le
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Uso: %s <arquivo_entrada>\n", argv[0]);
+        return 1;
+    }
+
     FILE *arquivo;
     char nome_arquivo[100];
     Leitura *leituras = NULL;
@@ -123,8 +128,8 @@ int main() {
     SensorInfo *infos = NULL;
     int num_sensores = 0;
 
-    printf("Digite o nome do arquivo de entrada: ");
-    scanf("%s", nome_arquivo);
+    strncpy(nome_arquivo, argv[1], sizeof(nome_arquivo) - 1);
+    nome_arquivo[sizeof(nome_arquivo) - 1] = '\0';
 
     arquivo = fopen(nome_arquivo, "r");
     if (!arquivo) {
@@ -198,6 +203,6 @@ int main() {
     free(infos);
     liberar_leituras(leituras);
 
-    printf("Processamento concluido com sucesso.\n");
+    printf("Processamento concluído com sucesso.\n");
     return 0;
 }
