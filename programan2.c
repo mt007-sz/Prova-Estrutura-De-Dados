@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
+#include <limits.h>
 
 #define MAX_SENSOR_ID 10
 #define BUFFER_DATA_HORA 30
@@ -61,20 +61,26 @@ void converter_para_data_hora(unsigned long long timestamp, char *buffer) {
     strftime(buffer, BUFFER_DATA_HORA, "%d/%m/%Y %H:%M:%S", timeinfo);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc != 9) {
+        fprintf(stderr, "Uso: %s <arquivo> <sensor> <dia> <mes> <ano> <hora> <minuto> <segundo>\n", argv[0]);
+        return 1;
+    }
+
+    const char *nome_arquivo = argv[1];
+
     char nome_sensor[MAX_SENSOR_ID];
-    int dia, mes, ano, hora, minuto, segundo;
+    strncpy(nome_sensor, argv[2], MAX_SENSOR_ID - 1);
+    nome_sensor[MAX_SENSOR_ID - 1] = '\0';
 
-    printf("Digite qual sensor voce quer verificar (ex: TEMP):");   //
-    scanf("%s", nome_sensor);
-
-    printf("Informe o dia, mes, ano e horario (no formato dd mm aaaa hh mm ss):");
-    scanf("%d %d %d %d %d %d", &dia, &mes, &ano, &hora, &minuto, &segundo);
+    int dia     = atoi(argv[3]);
+    int mes     = atoi(argv[4]);
+    int ano     = atoi(argv[5]);
+    int hora    = atoi(argv[6]);
+    int minuto  = atoi(argv[7]);
+    int segundo = atoi(argv[8]);
 
     unsigned long long timestamp_alvo = converter_para_timestamp(dia, mes, ano, hora, minuto, segundo);
-
-    char nome_arquivo[20];
-    snprintf(nome_arquivo, sizeof(nome_arquivo), "%s.txt", nome_sensor);
 
     FILE *arquivo = fopen(nome_arquivo, "r");
     if (!arquivo) {
@@ -86,7 +92,7 @@ int main() {
     int num_leituras = 0, capacidade = 100;
     leituras = malloc(capacidade * sizeof(Leitura));
     if (!leituras) {
-        fprintf(stderr, "Erro: Mem\u00f3ria insuficiente!\n");
+        fprintf(stderr, "Erro: Memória insuficiente!\n");
         fclose(arquivo);
         return 1;
     }
@@ -100,7 +106,7 @@ int main() {
             capacidade += 100;
             Leitura *temp = realloc(leituras, capacidade * sizeof(Leitura));
             if (!temp) {
-                fprintf(stderr, "Erro: Mem\u00f3ria insuficiente na realoca\u00e7\u00e3o!\n");
+                fprintf(stderr, "Erro: Memória insuficiente na realocação!\n");
                 free(leituras);
                 fclose(arquivo);
                 return 1;
@@ -121,11 +127,11 @@ int main() {
 
     printf("\nResultado da consulta:\n");
     printf("Data/hora solicitada: %s\n", data_hora_alvo);
-    printf("Leitura mais proxima:\n");
+    printf("Leitura mais próxima:\n");
     printf("  Sensor: %s\n", leituras[indice].sensor_id);
     printf("  Data/hora: %s\n", data_hora_encontrada);
     printf("  Valor: %.2f\n", leituras[indice].valor);
-    printf("  Diferenca: %llu segundos\n",
+    printf("  Diferença: %llu segundos\n",
            (leituras[indice].timestamp > timestamp_alvo)
                ? leituras[indice].timestamp - timestamp_alvo
                : timestamp_alvo - leituras[indice].timestamp);
